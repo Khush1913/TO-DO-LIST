@@ -1,14 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const defaultLists = [
+  { id: '1', name: 'Personal', icon: 'User', createdAt: new Date().toISOString() },
+  { id: '2', name: 'Office Work', icon: 'Briefcase', createdAt: new Date().toISOString() }
+];
+
 export const useTaskStore = create(
   persist(
     (set, get) => ({
+      lists: defaultLists,
+      activeListId: '1',
       tasks: [],
-      filter: 'all', // all, active, completed
       searchQuery: '',
-      darkMode: false,
-      
+      filter: 'all',
+      darkMode: true,
+
       toggleDarkMode: () => set((state) => {
         const newMode = !state.darkMode;
         if (newMode) {
@@ -18,15 +25,41 @@ export const useTaskStore = create(
         }
         return { darkMode: newMode };
       }),
-      setFilter: (filter) => set({ filter }),
+
+      setActiveListId: (id) => set({ activeListId: id }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
-      
+      setFilter: (filter) => set({ filter }),
+
+      addList: (name) => set((state) => {
+        const newList = {
+          id: Date.now().toString(),
+          name,
+          createdAt: new Date().toISOString()
+        };
+        return { lists: [...state.lists, newList], activeListId: newList.id };
+      }),
+
+      deleteList: (id) => set((state) => {
+        const remainingLists = state.lists.filter(l => l.id !== id);
+        return {
+          lists: remainingLists,
+          activeListId: state.activeListId === id ? (remainingLists[0]?.id || null) : state.activeListId,
+          tasks: state.tasks.filter(t => t.listId !== id)
+        };
+      }),
+
+      renameList: (id, newName) => set((state) => ({
+        lists: state.lists.map(l => l.id === id ? { ...l, name: newName } : l)
+      })),
+
       addTask: (task) => set((state) => ({
         tasks: [
           {
             id: Date.now().toString(),
+            listId: state.activeListId,
             title: task.title,
-            completed: false,
+            description: task.description || '',
+            status: 'START', // START, IN_PROGRESS, COMPLETED
             priority: task.priority || 'Medium',
             dueDate: task.dueDate || null,
             createdAt: new Date().toISOString()
@@ -34,30 +67,50 @@ export const useTaskStore = create(
           ...state.tasks
         ]
       })),
-      
+
       editTask: (id, updatedFields) => set((state) => ({
         tasks: state.tasks.map(t => t.id === id ? { ...t, ...updatedFields } : t)
       })),
-      
+
       deleteTask: (id) => set((state) => ({
         tasks: state.tasks.filter(t => t.id !== id)
       })),
-      
-      toggleTaskComplete: (id) => set((state) => ({
-        tasks: state.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
-      })),
-      
-      reorderTasks: (startIndex, endIndex) => set((state) => {
-        const result = Array.from(state.tasks);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
-        return { tasks: result };
-      })
+
+      moveTask: (taskId, newStatus, newIndex) => set((state) => {
+        const tasks = [...state.tasks];
+        const taskIndex = tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return state;
+
+        const [taskToMove] = tasks.splice(taskIndex, 1);
+        taskToMove.status = newStatus;
+        
+        const tasksInNewStatus = tasks.filter(t => t.status === newStatus && t.listId === state.activeListId);
+        
+        let insertIndex = tasks.length;
+        if (newIndex !== undefined && newIndex < tasksInNewStatus.length) {
+          const targetTask = tasksInNewStatus[newIndex];
+          insertIndex = tasks.findIndex(t => t.id === targetTask.id);
+        } else if (newIndex === undefined) {
+            // Append to the end of the new status column visually
+            // Which means just append to the end of the tasks array
+            insertIndex = tasks.length;
+        }
+        
+        tasks.splice(insertIndex, 0, taskToMove);
+        
+        return { tasks };
+      }),
     }),
     {
-      name: 'premium-todo-storage',
+      name: 'premium-multi-todo-storage',
       onRehydrateStorage: () => (state) => {
-        // Hydration logic for theme happens in App.jsx to be safe
+        if (state) {
+            if (state.darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
       },
     }
   )
