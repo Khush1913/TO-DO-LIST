@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { useTaskStore } from '../../store/useTaskStore';
 import Column from './Column';
@@ -42,17 +42,28 @@ const Board = ({ onAddTask, onEditTask }) => {
   };
 
   return (
-    <div className="flex-1 overflow-x-auto overflow-y-hidden pt-4 pb-8 px-2">
+    <div className="flex-1 w-full h-full pb-4">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 h-full items-start">
+        {/* Responsive layout: 
+            - Mobile: horizontal scroll with snap
+            - Tablet (md): grid with 2 columns, wrapping the 3rd
+            - Desktop (lg): 3 columns side-by-side flex 
+        */}
+        <div className="
+          flex flex-nowrap overflow-x-auto snap-x snap-mandatory 
+          md:grid md:grid-cols-2 md:overflow-x-visible md:snap-none md:gap-y-8
+          lg:flex lg:flex-nowrap lg:overflow-x-visible
+          gap-6 h-full items-start pb-4 thin-scrollbar
+        ">
           {STATUSES.map(status => (
-            <Column
-              key={status}
-              status={status}
-              tasks={tasksByStatus[status]}
-              onAddTask={onAddTask}
-              onEditTask={onEditTask}
-            />
+            <div key={status} className="snap-center shrink-0 w-[85vw] sm:w-[320px] md:w-auto h-full max-h-full">
+              <Column
+                status={status}
+                tasks={tasksByStatus[status]}
+                onAddTask={onAddTask}
+                onEditTask={onEditTask}
+              />
+            </div>
           ))}
         </div>
       </DragDropContext>
