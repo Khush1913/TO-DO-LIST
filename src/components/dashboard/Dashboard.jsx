@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTaskStore } from '../../store/useTaskStore';
 import { Target, CheckCircle2, Circle, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ResetButton from './ResetButton';
 
 export default function Dashboard() {
   const { tasks, activeListId } = useTaskStore();
@@ -39,8 +40,10 @@ export default function Dashboard() {
   const seconds = (timeLeft % 60).toString().padStart(2, '0');
 
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Project Overview</h3>
+    <div className="flex flex-col gap-4 relative">
+      <ResetButton />
+
+      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 mt-2">Project Overview</h3>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col gap-2">

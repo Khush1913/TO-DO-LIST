@@ -15,6 +15,57 @@ export const useTaskStore = create(
       searchQuery: '',
       filter: 'all',
       darkMode: true,
+      previousState: null,
+
+      resetApp: () => set((state) => {
+        const backup = {
+          lists: state.lists,
+          activeListId: state.activeListId,
+          tasks: state.tasks,
+          searchQuery: state.searchQuery,
+          filter: state.filter
+        };
+        return {
+          previousState: backup,
+          lists: defaultLists,
+          activeListId: '1',
+          tasks: [],
+          searchQuery: '',
+          filter: 'all'
+        };
+      }),
+
+      resetTaskStatuses: () => set((state) => {
+        const backup = {
+          lists: state.lists,
+          activeListId: state.activeListId,
+          tasks: state.tasks,
+          searchQuery: state.searchQuery,
+          filter: state.filter
+        };
+        
+        const updatedTasks = state.tasks.map(task => {
+          if (task.status === 'IN_PROGRESS' || task.status === 'COMPLETED') {
+            return { ...task, status: 'START' };
+          }
+          return task;
+        });
+
+        return {
+          previousState: backup,
+          tasks: updatedTasks
+        };
+      }),
+
+      undoReset: () => set((state) => {
+        if (state.previousState) {
+          return {
+            ...state.previousState,
+            previousState: null
+          };
+        }
+        return state;
+      }),
 
       toggleDarkMode: () => set((state) => {
         const newMode = !state.darkMode;

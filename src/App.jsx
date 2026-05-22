@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import Board from './components/kanban/Board';
 import Dashboard from './components/dashboard/Dashboard';
 import TaskModal from './components/kanban/TaskModal';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 function App() {
   const { darkMode } = useTaskStore();
@@ -32,8 +33,9 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
-      <Sidebar />
+    <ToastProvider>
+      <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+        <Sidebar />
       
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Header />
@@ -67,6 +69,7 @@ function App() {
         editingTask={editingTask}
       />
     </div>
+    </ToastProvider>
   );
 }
 
