@@ -45,7 +45,7 @@ export const useTaskStore = create(
         };
         
         const updatedTasks = state.tasks.map(task => {
-          if (task.status === 'IN_PROGRESS' || task.status === 'COMPLETED') {
+          if (task.listId === state.activeListId && (task.status === 'IN_PROGRESS' || task.status === 'COMPLETED')) {
             return { ...task, status: 'START' };
           }
           return task;
